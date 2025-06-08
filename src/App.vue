@@ -1,5 +1,21 @@
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useStore } from 'vuex';
+import MultiStepForm from '@/components/multi-step-form.vue';
+
+const store = useStore();
+
+const isLoaded = computed(() => Object.keys(store.state.formSchema).length > 0);
+
+onMounted(() => {store.dispatch('initializeFormSchema')});
+</script>
+
 <template>
-  <router-view/>
+  <div class="wrapper">
+    <p v-if="!isLoaded">Loading...</p>
+    <MultiStepForm v-else />
+  </div>
+  
 </template>
 
 <style>
@@ -11,6 +27,13 @@ body {
 }
 p{
   margin: 0;
+}
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 5rem 0;
 }
 #app {
   display: flex;

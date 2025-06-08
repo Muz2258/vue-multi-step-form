@@ -1,101 +1,40 @@
 import { createStore } from 'vuex';
 import createPersistedState from 'vuex-persistedstate';
-
-const getInitialFormSchema = () => ({
-  step1: {
-    stepTitle: "Step 1's Title",
-    section1: {
-      title: "Section 1's Title",
-      description: "A simple description of section 1",
-      fields: {
-        input1: { label: 'Input 1', type: 'text' },
-        input2: { label: 'Input 2', type: 'text' },
-      },
-    },
-    section2: {
-      title: "Section 2's Title",
-      description: "A simple description of section 2",
-      fields: {
-        input3: { label: 'Input 3', type: 'text' },
-        input4: { label: 'Input 4', type: 'text' },
-      },
-    },
-    section3: {
-      title: "Section 3's Title",
-      description: "A simple description of section 3",
-      fields: {
-        input5: { label: 'Input 5', type: 'text' },
-        input6: { label: 'Input 6', type: 'text' },
-      },
-    },
-  },
-  step2: {
-    stepTitle: "Step 2's Title",
-    section1: {
-      title: "Section 1's Title",
-      description: "A simple description of section 1",
-      fields: {
-        input7: { label: 'Input 7', type: 'text' },
-        input8: { label: 'Input 8', type: 'text' },
-      },
-    },
-    section2: {
-      title: "Section 2's Title",
-      description: "A simple description of section 2",
-      fields: {
-        input9: { label: 'Input 9', type: 'text' },
-        input10: { label: 'Input 10', type: 'text' },
-      },
-    },
-  },
-  step3: {
-    stepTitle: "Step 3's Title",
-    section1: {
-      title: "Section 1's Title",
-      description: "A simple description of section 1",
-      fields: {
-        input11: { label: 'Input 11', type: 'text' },
-        input12: { label: 'Input 12', type: 'text' },
-      },
-    },
-    section2: {
-      title: "Section 2's Title",
-      description: "A simple description of section 2",
-      fields: {
-        input13: { label: 'Input 13', type: 'text' },
-        input14: { label: 'Input 14', type: 'text' },
-      },
-    },
-  },
-});
+import { getFormSchema, submitForm } from '../api/formApi';
 
 const getInitialFormData = (schema) => {
   const formData = {};
-  Object.entries(schema).forEach(([step, sections]) => {
-    formData[step] = {};
-    Object.entries(sections).forEach(([sectionKey, section]) => {
-      if (sectionKey !== 'stepTitle') {
-        const values = {};
-        Object.keys(section.fields).forEach(fieldKey => {
-          values[fieldKey] = '';
-        });
-        formData[step][sectionKey] = values;
-      }
+  schema.forEach((step) => {
+    formData[step.id] = {};
+    step.sections.forEach((section) => {
+      const values = {};
+      section.fields.forEach((field) => {
+        values[field.id] = '';
+      });
+      formData[step.id][section.id] = values;
     });
   });
   return formData;
 };
 
-const formSchema = getInitialFormSchema();
-const formData = getInitialFormData(formSchema);
-
 export default createStore({
   state: {
-    formSchema,
-    formData,
-    accordionState: {}, // track which section is open per step
+    formSchema: {},
+    formData: {},
+    accordionState: {},
   },
   mutations: {
+    setFormSchema(state, schema) {
+      state.formSchema = schema;
+      state.formData = getInitialFormData(schema);
+
+      const accordion = {};
+      schema.forEach((step) => {
+        accordion[step.id] = null;
+      });
+
+      state.accordionState = accordion;
+    },
     updateField(state, { step, section, field, value }) {
       state.formData[step][section][field] = value;
     },
@@ -103,9 +42,28 @@ export default createStore({
       state.accordionState[step] = sectionKey;
     },
     resetFormData(state) {
-      state.formData = getInitialFormData(formSchema);
+      state.formData = getInitialFormData(state.formSchema);
       state.accordionState = {};
     }
+  },
+  actions: {
+    async initializeFormSchema({ commit }) {
+      try {
+        const res = await getFormSchema();
+        commit('setFormSchema', res.data.steps);
+      } catch (error) {
+        console.error('Failed to load form schema:', error);
+      }
+    },
+
+    async submitForm({ state }) {
+      try {
+        const response = await submitForm(state.formData);
+        console.log('Form submitted successfully:', response.data);
+      } catch (error) {
+        console.error('Failed to submit form:', error);
+      }
+    },
   },
   plugins: [
     createPersistedState({

@@ -39,12 +39,12 @@ const updateField = (sectionKey, fieldKey, value) => {
   <div class="accordion">
     <div
       v-for="section in sections"
-      :key="section.key"
+      :key="section.id"
       class="accordion__section"
     >
       <div
         class="accordion__section__head"
-        @click="toggleSection(section.key)"
+        @click="toggleSection(section.id)"
       >
         <div class="accordion__section__head__title-wrapper">
           <div class="title-container">
@@ -70,12 +70,12 @@ const updateField = (sectionKey, fieldKey, value) => {
             :key="fieldKey"
             class="input-group"
           >
-            <label :for="fieldKey">{{ field.label }}</label>
+            <label :for="field.id">{{ field.label }}</label>
             <input
-              :id="fieldKey"
+              :id="field.id"
               :type="field.type"
-              :value="section.values[fieldKey] || ''"
-              @blur="e => updateField(section.key, fieldKey, e.target.value)"
+              :value="section.values[field.id] || ''"
+              @blur="e => updateField(section.id, field.id, e.target.value)"
             />
           </div>
         </form>

@@ -5,36 +5,35 @@ import { ref, computed } from 'vue';
 
 const store = useStore();
 
-const steps = Object.keys(store.state.formSchema);
 const currentStepIndex = ref(0);
-
 const finished = ref(false);
 
-const currentStepKey = computed(() => steps[currentStepIndex.value]);
-const currentStepTitle = computed(() => store.state.formSchema[currentStepKey.value].stepTitle);
-
+const steps = computed(() => store.state.formSchema || [])
+const currentStep = computed(() => steps.value[currentStepIndex.value]);
+const currentStepId = computed(() => currentStep.value?.id || '');
+const currentStepTitle = computed(() => currentStep.value?.title || '');
 const isFirstStep = computed(() => currentStepIndex.value === 0);
-const isLastStep = computed(() => currentStepIndex.value === steps.length - 1);
+const isLastStep = computed(() => currentStepIndex.value === steps.value.length - 1);
 
 const currentSections = computed(() => {
-  const step = store.state.formSchema[currentStepKey.value];
-  return Object.entries(step)
-    .filter(([key]) => key.startsWith('section'))
-    .map(([key, value]) => ({
-      key,
-      ...value,
-      open: store.state.accordionState[currentStepKey.value] === key,
-      values: store.state.formData[currentStepKey.value][key] || {},
-    }));
+  return (currentStep.value?.sections || []).map(section => ({
+    ...section,
+    open: store.state.accordionState[currentStepId.value] === section.id,
+    values: store.state.formData[currentStepId.value]?.[section.id] || {}
+  }));
 });
 
-const collectedData = computed(() => store.state.formData);
-
-const goToNextStep = () => {
+const goToNextStep = async () => {
   if (!isLastStep.value) {
     currentStepIndex.value++;
   } else {
-    finished.value = true;
+    try {
+        await store.dispatch('submitForm');
+        finished.value = true;
+    } catch (error) {
+        alert('Failed to submit form:', error);
+        finished.value = false;
+    }
   }
 };
 
@@ -63,7 +62,7 @@ const resetForm = () => {
 
         <div class="step__body">
             <Accordion
-                :stepKey="currentStepKey"
+                :stepKey="currentStepId"
                 :sections="currentSections"
             />
         </div>
