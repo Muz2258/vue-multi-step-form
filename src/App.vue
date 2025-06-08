@@ -15,10 +15,12 @@ onMounted(() => {store.dispatch('initializeFormSchema')});
     <p v-if="!isLoaded">Loading...</p>
     <MultiStepForm v-else />
   </div>
-  
 </template>
 
 <style>
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
   padding: 0;
@@ -28,16 +30,13 @@ body {
 p{
   margin: 0;
 }
-.wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 5rem 0;
-}
 #app {
   display: flex;
   justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+.wrapper {
   height: 100%;
 }
 </style>

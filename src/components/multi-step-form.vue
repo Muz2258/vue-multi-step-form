@@ -97,6 +97,7 @@ const resetForm = () => {
     justify-content: center;
     align-items: center;
     height: 100%;
+    padding-block: 5rem;
 }
 .step-wrapper {
     display: flex;
